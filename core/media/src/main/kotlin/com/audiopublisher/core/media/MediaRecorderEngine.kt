@@ -40,7 +40,7 @@ class MediaRecorderEngine @Inject constructor(
         private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
         private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
         private const val BIT_RATE = 128_000
-        private const val GAIN = 6.0f  // amplify quiet emulator mic
+        private const val GAIN = 1.0f
     }
 
     override fun start(outputFilePath: String) {
