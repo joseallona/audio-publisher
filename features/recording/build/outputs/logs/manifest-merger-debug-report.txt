@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml:2:13-83
+INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml:2:13-83
+	package
+		INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml
+	xmlns:android
+		ADDED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml:2:23-81
+uses-sdk
+INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml reason: use-sdk injection requested
+INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml
+INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml
+	android:targetSdkVersion
+		INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml
+	android:minSdkVersion
+		INJECTED from /Users/joseallona/Sites/audio-publisher/audio-publisher/features/recording/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest8712993587254036903.xml

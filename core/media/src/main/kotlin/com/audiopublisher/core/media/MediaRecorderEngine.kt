@@ -1,11 +1,15 @@
 package com.audiopublisher.core.media
 
+import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
 
-class MediaRecorderEngine @Inject constructor() : RecorderEngine {
+class MediaRecorderEngine @Inject constructor(
+    @ApplicationContext private val context: Context
+) : RecorderEngine {
 
     private var recorder: MediaRecorder? = null
     private var startTimeMs: Long = 0L
@@ -59,7 +63,7 @@ class MediaRecorderEngine @Inject constructor() : RecorderEngine {
 
     private fun createRecorder(): MediaRecorder =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(android.app.Application())
+            MediaRecorder(context)
         } else {
             @Suppress("DEPRECATION")
             MediaRecorder()
