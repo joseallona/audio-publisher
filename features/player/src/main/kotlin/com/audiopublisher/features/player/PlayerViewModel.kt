@@ -61,6 +61,9 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    fun getFilePath(): String? = _recording.value?.filePath
+    fun getTitle(): String? = _recording.value?.title
+
     override fun onCleared() {
         playerEngine.release()
     }

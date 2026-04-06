@@ -4,8 +4,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioManager
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.audiopublisher.core.database.model.Recording
 import com.audiopublisher.core.database.model.RecordingStatus
@@ -30,12 +35,31 @@ class RecordingService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var currentFilePath: String? = null
+    private var isRecording = false
+
+    private val noisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY && isRecording) {
+                Log.d(TAG, "Headphones unplugged — pausing recording")
+                recorderEngine.pause()
+                isRecording = false
+            }
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        registerReceiver(
+            noisyReceiver,
+            IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+        )
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> handleStart()
-            ACTION_PAUSE -> recorderEngine.pause()
-            ACTION_RESUME -> recorderEngine.resume()
+            ACTION_PAUSE -> handlePause()
+            ACTION_RESUME -> handleResume()
             ACTION_STOP -> handleStop()
         }
         return START_STICKY
@@ -43,35 +67,66 @@ class RecordingService : Service() {
 
     private fun handleStart() {
         startForeground(NOTIFICATION_ID, buildNotification())
-        val fileName = "${UUID.randomUUID()}.m4a"
-        val dir = getExternalFilesDir("recordings") ?: filesDir
-        val file = File(dir, fileName)
+        val dir = getExternalFilesDir("recordings") ?: filesDir.resolve("recordings").also { it.mkdirs() }
+        if (!dir.exists()) dir.mkdirs()
+
+        val file = File(dir, "${UUID.randomUUID()}.m4a")
         currentFilePath = file.absolutePath
-        recorderEngine.start(file.absolutePath)
+
+        try {
+            recorderEngine.start(file.absolutePath)
+            isRecording = true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start recording", e)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
+    }
+
+    private fun handlePause() {
+        if (isRecording) {
+            recorderEngine.pause()
+            isRecording = false
+        }
+    }
+
+    private fun handleResume() {
+        if (!isRecording) {
+            recorderEngine.resume()
+            isRecording = true
+        }
     }
 
     private fun handleStop() {
-        val result = recorderEngine.stop()
-        scope.launch {
-            val recording = Recording(
-                id = UUID.randomUUID().toString(),
-                title = "Recording ${System.currentTimeMillis()}",
-                filePath = result.filePath,
-                durationMs = result.durationMs,
-                sizeBytes = result.sizeBytes,
-                createdAt = System.currentTimeMillis(),
-                sourceType = SourceType.PHONE_MIC,
-                status = RecordingStatus.READY
-            )
-            repository.save(recording)
+        try {
+            val result = recorderEngine.stop()
+            scope.launch {
+                val recording = Recording(
+                    id = UUID.randomUUID().toString(),
+                    title = "Recording ${System.currentTimeMillis()}",
+                    filePath = result.filePath,
+                    durationMs = result.durationMs,
+                    sizeBytes = result.sizeBytes,
+                    createdAt = System.currentTimeMillis(),
+                    sourceType = SourceType.PHONE_MIC,
+                    status = RecordingStatus.READY
+                )
+                repository.save(recording)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop recording cleanly", e)
+            currentFilePath?.let { File(it).delete() }
+        } finally {
+            isRecording = false
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
         }
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        unregisterReceiver(noisyReceiver)
         recorderEngine.release()
         scope.cancel()
     }
@@ -92,6 +147,7 @@ class RecordingService : Service() {
     }
 
     companion object {
+        private const val TAG = "RecordingService"
         const val ACTION_START = "com.audiopublisher.RECORD_START"
         const val ACTION_PAUSE = "com.audiopublisher.RECORD_PAUSE"
         const val ACTION_RESUME = "com.audiopublisher.RECORD_RESUME"
