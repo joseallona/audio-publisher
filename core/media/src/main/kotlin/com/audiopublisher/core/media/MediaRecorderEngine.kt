@@ -70,7 +70,7 @@ class MediaRecorderEngine @Inject constructor(
             @Suppress("DEPRECATION")
             MediaRecorder()
         }.apply {
-            setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+            setAudioSource(MediaRecorder.AudioSource.CAMCORDER)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
         }
