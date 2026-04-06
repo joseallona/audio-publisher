@@ -1,6 +1,7 @@
 package com.audiopublisher.core.media
 
 import android.media.MediaPlayer
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,25 +24,42 @@ class MediaPlayerEngine @Inject constructor() : PlayerEngine {
 
     override fun play(filePath: String) {
         release()
-        val mp = MediaPlayer().apply {
-            setDataSource(filePath)
-            prepare()
-            start()
-            setOnCompletionListener {
-                positionJob?.cancel()
-                _state.value = _state.value.copy(
-                    status = PlayerStatus.COMPLETED,
-                    currentPositionMs = 0L
-                )
-            }
-        }
+        val mp = MediaPlayer()
         player = mp
-        _state.value = PlayerState(
-            status = PlayerStatus.PLAYING,
-            currentPositionMs = 0L,
-            durationMs = mp.duration.toLong()
-        )
-        startPositionPolling()
+
+        mp.setOnPreparedListener { prepared ->
+            prepared.start()
+            _state.value = PlayerState(
+                status = PlayerStatus.PLAYING,
+                currentPositionMs = 0L,
+                durationMs = prepared.duration.toLong()
+            )
+            startPositionPolling()
+        }
+
+        mp.setOnCompletionListener {
+            positionJob?.cancel()
+            _state.value = _state.value.copy(
+                status = PlayerStatus.COMPLETED,
+                currentPositionMs = 0L
+            )
+        }
+
+        mp.setOnErrorListener { _, what, extra ->
+            Log.e(TAG, "MediaPlayer error: what=$what extra=$extra")
+            positionJob?.cancel()
+            _state.value = PlayerState(status = PlayerStatus.IDLE)
+            true
+        }
+
+        try {
+            mp.setDataSource(filePath)
+            mp.prepareAsync()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to set data source: $filePath", e)
+            mp.release()
+            player = null
+        }
     }
 
     override fun pause() {
@@ -83,5 +101,9 @@ class MediaPlayerEngine @Inject constructor() : PlayerEngine {
                 )
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "MediaPlayerEngine"
     }
 }
