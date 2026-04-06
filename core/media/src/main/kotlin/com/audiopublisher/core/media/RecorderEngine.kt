@@ -6,6 +6,7 @@ interface RecorderEngine {
     fun resume()
     fun stop(): RecordingResult
     fun release()
+    fun getMaxAmplitude(): Int
 }
 
 data class RecordingResult(

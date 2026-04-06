@@ -61,6 +61,8 @@ class MediaRecorderEngine @Inject constructor(
         recorder = null
     }
 
+    override fun getMaxAmplitude(): Int = recorder?.maxAmplitude ?: 0
+
     private fun createRecorder(): MediaRecorder =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(context)
