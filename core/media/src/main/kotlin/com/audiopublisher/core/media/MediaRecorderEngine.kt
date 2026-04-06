@@ -70,10 +70,8 @@ class MediaRecorderEngine @Inject constructor(
             @Suppress("DEPRECATION")
             MediaRecorder()
         }.apply {
-            setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            setAudioSource(MediaRecorder.AudioSource.DEFAULT)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioSamplingRate(44100)
-            setAudioEncodingBitRate(128_000)
         }
 }
